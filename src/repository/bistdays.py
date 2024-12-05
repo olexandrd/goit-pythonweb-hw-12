@@ -55,11 +55,6 @@ class BirthdayRepository:
         today = datetime.now()
         start_day = today.timetuple().tm_yday
         end_day = (today + timedelta(days=daygap)).timetuple().tm_yday
-        redis_key = f"{user.id}-{skip}-{limit}-{daygap}"
-
-        cached_contacts = await self._redis.lrange(redis_key, 0, -1)
-        if cached_contacts:
-            return [json.loads(contact.decode("utf-8")) for contact in cached_contacts]
 
         if end_day < start_day:
             stmt = (
@@ -83,12 +78,5 @@ class BirthdayRepository:
 
         contacts_result = await self.db.execute(stmt)
         contacts = contacts_result.scalars().all()
-
-        for contact in contacts:
-            await self._redis.rpush(
-                redis_key, json.dumps(self.serialize_contact(contact))
-            )
-
-        await self._redis.expire(redis_key, 3600)
 
         return [self.serialize_contact(contact) for contact in contacts]
