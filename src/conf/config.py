@@ -22,13 +22,13 @@ class Settings(BaseSettings):
     MAIL_USERNAME: EmailStr
     MAIL_PASSWORD: str
     MAIL_FROM: EmailStr
-    MAIL_PORT: int = 465
-    MAIL_SERVER: str = "smtp.mailgun.org"
+    MAIL_PORT: int = 1080
+    MAIL_SERVER: str = "mailcatcher"
     MAIL_FROM_NAME: str = "Rest API Service"
     MAIL_STARTTLS: bool = False
-    MAIL_SSL_TLS: bool = True
-    USE_CREDENTIALS: bool = True
-    VALIDATE_CERTS: bool = True
+    MAIL_SSL_TLS: bool = False
+    USE_CREDENTIALS: bool = False
+    VALIDATE_CERTS: bool = False
 
     CLD_NAME: str
     CLD_API_KEY: int
