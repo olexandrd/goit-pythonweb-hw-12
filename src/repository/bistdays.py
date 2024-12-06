@@ -2,13 +2,12 @@
 DB operations for bistdays
 """
 
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime
 from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.sql import extract
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.inspection import inspect
 
 from src.database.models import Contact, User
 
@@ -25,9 +24,15 @@ class BirthdayRepository:
         self, skip: int, limit: int, daygap: int, user: User
     ) -> List[Contact]:
         """
-        Retrieve contacts, skip and limit are used for pagination
+        Retrieve a list of contacts based on the specified criteria.
+        Args:
+            skip (int): The number of records to skip.
+            limit (int): The maximum number of records to return.
+            daygap (int): The number of days from today to consider for filtering contacts by birthday.
+            user (User): The user whose contacts are to be retrieved.
+        Returns:
+            List[Contact]: A list of contacts that match the specified criteria.
         """
-
         today = datetime.now()
         start_day = today.timetuple().tm_yday
         end_day = (today + timedelta(days=daygap)).timetuple().tm_yday

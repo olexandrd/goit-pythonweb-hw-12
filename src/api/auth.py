@@ -131,6 +131,14 @@ async def request_email(
 
 @router.post("/logout")
 async def logout(user: str = Depends(get_current_user)):
+    """
+    Logs out the current user by deleting their session from the Redis cache.
+    Args:
+        user (str): The current user obtained from the dependency injection.
+    Returns:
+        dict: A message indicating the user has been logged out successfully.
+    """
+
     redis_client = await get_redis_client()
     await redis_client.delete(f"user:{user.id}")
     return {"message": "Logged out successfully"}
