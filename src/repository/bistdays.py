@@ -2,10 +2,8 @@
 DB operations for bistdays
 """
 
-import json
 from datetime import timedelta, datetime, date
 from typing import List
-import redis.asyncio as redis
 
 from sqlalchemy import select
 from sqlalchemy.sql import extract
@@ -13,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.inspection import inspect
 
 from src.database.models import Contact, User
-from src.conf.config import settings
 
 
 class BirthdayRepository:
@@ -23,27 +20,6 @@ class BirthdayRepository:
 
     def __init__(self, session: AsyncSession):
         self.db = session
-        self._redis = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-
-    def serialize_contact(self, contact) -> dict:
-        """
-        Serialize a single Contact object into a dictionary, making all fields JSON-compatible.
-        """
-        mapper = inspect(contact)
-        serialized = {}
-
-        for column in mapper.attrs:
-            value = getattr(contact, column.key)
-            if isinstance(value, datetime):
-                serialized[column.key] = value.isoformat()
-            elif isinstance(value, date):
-                serialized[column.key] = value.isoformat()
-            elif isinstance(value, object):
-                serialized[column.key] = str(value)
-            else:
-                serialized[column.key] = value
-
-        return serialized
 
     async def get_contacts(
         self, skip: int, limit: int, daygap: int, user: User
@@ -79,4 +55,4 @@ class BirthdayRepository:
         contacts_result = await self.db.execute(stmt)
         contacts = contacts_result.scalars().all()
 
-        return [self.serialize_contact(contact) for contact in contacts]
+        return contacts

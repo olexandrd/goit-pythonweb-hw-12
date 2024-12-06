@@ -10,10 +10,17 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas import UserCreate, Token, UserModel, RequestEmail
-from src.services.auth import create_access_token, Hash, get_email_from_token
+from src.services.auth import (
+    create_access_token,
+    Hash,
+    get_email_from_token,
+    get_current_user,
+)
 from src.services.users import UserService
 from src.database.db import get_db
 from src.services.email import send_email
+from src.conf.redis_client import get_redis_client
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -74,8 +81,11 @@ async def login_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email not confirmed",
         )
+    redis_client = await get_redis_client()
+    user_out = UserModel.from_orm(user)
+    await redis_client.set(f"user:{user.id}", user_out.json(), ex=600)
 
-    access_token = await create_access_token(data={"sub": user.username})
+    access_token = await create_access_token(data={"sub": user.username, "id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -94,7 +104,7 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
     if user.confirmed:
         return {"message": "Email already confirmed"}
     await user_service.confirmed_email(email)
-    return {"message": "Еmail confirmed"}
+    return {"message": "Email confirmed"}
 
 
 @router.post("/request_email")
@@ -117,3 +127,10 @@ async def request_email(
             send_email, user.email, user.username, request.base_url
         )
     return {"message": "Check your email for the confirmation link"}
+
+
+@router.post("/logout")
+async def logout(user: str = Depends(get_current_user)):
+    redis_client = await get_redis_client()
+    await redis_client.delete(f"user:{user.id}")
+    return {"message": "Logged out successfully"}

@@ -75,3 +75,10 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())  # pylint: disable=not-callable
     avatar = Column(String(255), nullable=True)
     confirmed = Column(Boolean, default=False)
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        """
+        Create an instance of the ORM model from a dictionary.
+        """
+        return cls(**data)

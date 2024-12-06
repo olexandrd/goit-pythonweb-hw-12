@@ -18,6 +18,8 @@ Functions:
 
 """
 
+import json
+
 from typing import Optional
 from datetime import datetime, timedelta, UTC
 from fastapi import Depends, HTTPException, status
@@ -29,6 +31,9 @@ from jose import JWTError, jwt
 from src.database.db import get_db
 from src.conf.config import settings
 from src.services.users import UserService
+from src.schemas import UserModel
+from src.database.models import User
+from src.conf.redis_client import get_redis_client
 
 
 class Hash:
@@ -130,14 +135,28 @@ async def get_current_user(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         username = payload["sub"]
+        user_id = payload["id"]
         if username is None:
             raise credentials_exception
     except JWTError as e:
         raise credentials_exception from e
+
+    redis_client = await get_redis_client()
+    cached_user = await redis_client.get(f"user:{user_id}")
+    if cached_user:
+        user_data = json.loads(cached_user)
+        return User.from_dict(user_data)
+
     user_service = UserService(db)
     user = await user_service.get_user_by_username(username)
     if user is None:
         raise credentials_exception
+    user_out = UserModel.from_orm(user)
+    await redis_client.set(
+        f"user:{user.id}",
+        user_out.json(),
+        ex=600,
+    )
     return user
 
 
