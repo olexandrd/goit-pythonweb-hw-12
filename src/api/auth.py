@@ -102,9 +102,9 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error"
         )
     if user.confirmed:
-        return {"message": "Email already confirmed"}
+        return {"message": messages.USER_EMAIL_ALREADY_CONFIRMED}
     await user_service.confirmed_email(email)
-    return {"message": "Email confirmed"}
+    return {"message": messages.USER_EMAIL_CONFIRMED}
 
 
 @router.post("/request_email")
@@ -121,12 +121,12 @@ async def request_email(
     user = await user_service.get_user_by_email(body.email)
 
     if user.confirmed:
-        return {"message": "Email already confirmed"}
+        return {"message": messages.USER_EMAIL_ALREADY_CONFIRMED}
     if user:
         background_tasks.add_task(
             send_email, user.email, user.username, request.base_url
         )
-    return {"message": "Check your email for the confirmation link"}
+    return {"message": messages.USER_EMAIL_CHECK_EMAIL}
 
 
 @router.post("/logout")
@@ -141,4 +141,4 @@ async def logout(user: str = Depends(get_current_user)):
 
     redis_client = await get_redis_client()
     await redis_client.delete(f"user:{user.id}")
-    return {"message": "Logged out successfully"}
+    return {"message": messages.USER_LOGOUT}

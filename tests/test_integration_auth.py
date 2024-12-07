@@ -1,12 +1,12 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 
 import pytest
 from sqlalchemy import select
 
-from fastapi import HTTPException
-from src.database.models import User
 from tests.conftest import TestingSessionLocal
+from src.database.models import User
 from src.conf import messages
+from src.services.auth import create_email_token
 
 
 user_data = {
@@ -102,3 +102,76 @@ def test_validation_error_login(client):
     assert response.status_code == 422, response.text
     data = response.json()
     assert "detail" in data
+
+
+def test_confirmed_email_fail(client):
+    token = "non valid token"
+    response = client.get(f"api/auth/confirmed_email/{token}")
+    assert response.status_code == 422
+    data = response.json()
+    assert data["detail"] == messages.WRONG_TOKEN
+
+
+def test_confirmed_email_confirmed(client, monkeypatch):
+    async def mock_get_user_by_email(self, email):
+        user_data_copy = user_data.copy()
+        user_data_copy.pop("password")
+        user = User(**user_data_copy)
+        user.confirmed = False
+        return user
+
+    monkeypatch.setattr(
+        "src.services.users.UserService.get_user_by_email", mock_get_user_by_email
+    )
+
+    token = create_email_token({"sub": user_data["email"]})
+    response = client.get(f"api/auth/confirmed_email/{token}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_EMAIL_CONFIRMED
+
+
+def test_confirmed_email_already_confirmed(client):
+    token = create_email_token({"sub": user_data["email"]})
+    response = client.get(f"api/auth/confirmed_email/{token}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_EMAIL_ALREADY_CONFIRMED
+
+
+def test_request_email(client, monkeypatch):
+    async def mock_get_user_by_email(self, email):
+        user_data_copy = user_data.copy()
+        user_data_copy.pop("password")
+        user = User(**user_data_copy)
+        user.confirmed = False
+        return user
+
+    monkeypatch.setattr(
+        "src.services.users.UserService.get_user_by_email", mock_get_user_by_email
+    )
+    mock_send_email = Mock()
+    monkeypatch.setattr("src.api.auth.send_email", mock_send_email)
+    response = client.post("api/auth/request_email", json={"email": user_data["email"]})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_EMAIL_CHECK_EMAIL
+
+
+@pytest.mark.asyncio
+async def logout(client, monkeypatch):
+    mock_redis_client = Mock()
+    monkeypatch.setattr("src.api.auth.redis_client", mock_redis_client)
+    response = client.post("api/auth/logout")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_LOGOUT
+    response = client.post("api/auth/logout")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_LOGOUT
+    mock_redis_client.assert_called_once()
+    response = client.post("api/auth/logout")
+    assert response.status_code == 401
+    data = response.json()
+    assert data["detail"] == messages.USER_WRONG_CREDENTIALS
