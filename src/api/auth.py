@@ -20,7 +20,7 @@ from src.services.users import UserService
 from src.database.db import get_db
 from src.services.email import send_email
 from src.conf.redis_client import get_redis_client
-
+from src.conf import messages
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,14 +42,14 @@ async def register_user(
     if email_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with this email already exists",
+            detail=messages.USER_EMAIL_ALREADY_EXISTS,
         )
 
     username_user = await user_service.get_user_by_username(user_data.username)
     if username_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="User with this username already exists",
+            detail=messages.USER_USERNAME_ALREADY_EXISTS,
         )
     user_data.password = Hash().get_password_hash(user_data.password)
     new_user = await user_service.create_user(user_data)
@@ -73,13 +73,13 @@ async def login_user(
     if not user or not Hash().verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Wrong credentials",
+            detail=messages.USER_WRONG_CREDENTIALS,
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not user.confirmed:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email not confirmed",
+            detail=messages.USER_EMAIL_NOT_CONFIRMED,
         )
     redis_client = await get_redis_client()
     user_out = UserModel.from_orm(user)
