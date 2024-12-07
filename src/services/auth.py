@@ -32,7 +32,7 @@ from src.database.db import get_db
 from src.conf.config import settings
 from src.services.users import UserService
 from src.schemas import UserModel
-from src.database.models import User
+from src.database.models import User, UserRole
 from src.conf.redis_client import get_redis_client
 
 
@@ -109,7 +109,7 @@ async def create_access_token(data: dict, expires_delta: Optional[int] = None):
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
-):
+) -> User:
     """
     Retrieve the current user based on the provided JWT token.
 
@@ -160,7 +160,7 @@ async def get_current_user(
     return user
 
 
-def create_email_token(data: dict):
+def create_email_token(data: dict) -> str:
     """
     Create a configmation token for the given data with an expiration of 7 days.
     Args:
@@ -176,7 +176,19 @@ def create_email_token(data: dict):
     return token
 
 
-async def get_email_from_token(token: str):
+def is_current_user_admin(current_user: User = Depends(get_current_user)) -> bool:
+    """
+    Check if the current user has an admin role.
+    Args:
+        current_user (User): The user object obtained from the dependency injection.
+    Returns:
+        bool: True if the current user's role is admin, False otherwise.
+    """
+
+    return current_user.role == UserRole.ADMIN
+
+
+async def get_email_from_token(token: str) -> str:
     """
     Retrieve the email from the provided JWT token.
     """

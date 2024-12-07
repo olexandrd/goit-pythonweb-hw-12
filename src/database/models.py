@@ -12,7 +12,8 @@ User:
 """
 
 from datetime import date
-from sqlalchemy import Integer, String, func, Column
+from enum import Enum
+from sqlalchemy import Integer, String, func, Column, Enum as SqlEnum
 from sqlalchemy.orm import mapped_column, Mapped, DeclarativeBase, relationship
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Date, DateTime, Boolean
@@ -20,6 +21,18 @@ from sqlalchemy.sql.sqltypes import Date, DateTime, Boolean
 
 class Base(DeclarativeBase):  # pylint: disable=[missing-class-docstring]
     pass
+
+
+class UserRole(str, Enum):
+    """
+    Enum representing user roles.
+    Attributes:
+        USER (str): Represents a regular user.
+        ADMIN (str): Represents an administrator.
+    """
+
+    USER = "user"
+    ADMIN = "admin"
 
 
 class Contact(Base):
@@ -65,6 +78,7 @@ class User(Base):
         hashed_password (str): Hashed password for the user.
         created_at (datetime): Timestamp when the user was created.
         avatar (str, optional): URL or path to the user's avatar image.
+        role (UserRole): Role of the user, defaults to UserRole.USER.
     """
 
     __tablename__ = "users"
@@ -75,6 +89,7 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())  # pylint: disable=not-callable
     avatar = Column(String(255), nullable=True)
     confirmed = Column(Boolean, default=False)
+    role = Column(SqlEnum(UserRole), default=UserRole.USER.value, nullable=False)
 
     @classmethod
     def from_dict(cls, data: dict):

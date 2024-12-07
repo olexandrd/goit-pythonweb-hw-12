@@ -24,6 +24,8 @@ from datetime import date
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+from src.database.models import UserRole
+
 
 class ContactModel(BaseModel):
     """
@@ -101,6 +103,7 @@ class UserModel(BaseModel):
     username: str
     email: EmailStr = Field(max_length=50)
     avatar: str
+    role: UserRole
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -118,6 +121,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr = Field(max_length=50)
     password: str
+    role: UserRole
 
 
 class Token(BaseModel):

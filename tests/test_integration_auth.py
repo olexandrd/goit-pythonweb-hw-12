@@ -13,6 +13,7 @@ user_data = {
     "username": "agent007",
     "email": "agent007@gmail.com",
     "password": "12345678",
+    "role": "user",
 }
 
 
@@ -32,10 +33,7 @@ def test_repeat_signup(client, monkeypatch):
     mock_send_email = Mock()
     monkeypatch.setattr("src.api.auth.send_email", mock_send_email)
     response = client.post("api/auth/register", json=user_data)
-    with pytest.raises(HTTPException) as exc:
-        response = client.post("api/auth/register", json=user_data)
-    assert exc.value.status_code == 409
-    # assert response.status_code == 409, response.text
+    assert response.status_code == 409, response.text
     data = response.json()
     assert data["detail"] == messages.USER_EMAIL_ALREADY_EXISTS
 

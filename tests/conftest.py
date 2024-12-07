@@ -44,6 +44,7 @@ def init_models_wrap():
                 hashed_password=hash_password,
                 confirmed=True,
                 avatar="https://twitter.com/gravatar",
+                role="user",
             )
             session.add(current_user)
             await session.commit()

@@ -5,17 +5,18 @@ This module provides /me endpoint for logged users.
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from fastapi import APIRouter, Depends, Request, UploadFile, File
+from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.schemas import UserModel
-from src.services.auth import get_current_user
+from src.services.auth import get_current_user, is_current_user_admin
 
 from src.services.users import UserService
 from src.services.upload_file import UploadFileService
 from src.database.db import get_db
 from src.database.models import User
 from src.conf.config import settings
+from src.conf import messages
 
 router = APIRouter(prefix="/users", tags=["users"])
 limiter = Limiter(key_func=get_remote_address)
@@ -43,6 +44,11 @@ async def update_avatar_user(
     """
     Update the avatar of the current authenticated user.
     """
+    if not is_current_user_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=messages.USER_UNSUFFICIENT_PERMISSIONS,
+        )
     avatar_url = UploadFileService(
         settings.CLD_NAME, settings.CLD_API_KEY, settings.CLD_API_SECRET
     ).upload_file(file, user.username)
