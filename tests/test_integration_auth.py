@@ -1,6 +1,5 @@
-from unittest.mock import Mock, AsyncMock
-
 import pytest
+from unittest.mock import Mock
 from sqlalchemy import select
 
 from tests.conftest import TestingSessionLocal

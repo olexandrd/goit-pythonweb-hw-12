@@ -2,12 +2,13 @@ import asyncio
 
 import pytest
 import pytest_asyncio
+from datetime import date, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from main import app
-from src.database.models import Base, User
+from src.database.models import Base, User, Contact
 from src.database.db import get_db
 from src.services.auth import create_access_token, Hash
 
@@ -29,6 +30,15 @@ test_user = {
     "password": "12345678",
 }
 
+test_contact = {
+    "name": "John",
+    "surname": "Doe",
+    "phone": "+1234567890",
+    "email": "john@example.com",
+    "birthday": date.today() + timedelta(days=5),
+    "notes": "Some note",
+}
+
 
 @pytest.fixture(scope="module", autouse=True)
 def init_models_wrap():
@@ -36,6 +46,7 @@ def init_models_wrap():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
+
         async with TestingSessionLocal() as session:
             hash_password = Hash().get_password_hash(test_user["password"])
             current_user = User(
@@ -46,10 +57,21 @@ def init_models_wrap():
                 avatar="https://twitter.com/gravatar",
                 role="user",
             )
+            current_contact = Contact(
+                name=test_contact["name"],
+                surname=test_contact["surname"],
+                phone_number=test_contact["phone"],
+                email=test_contact["email"],
+                birstday=test_contact["birthday"],
+                notes=test_contact["notes"],
+                user=current_user,
+            )
             session.add(current_user)
             await session.commit()
             await session.refresh(current_user)
             test_user["id"] = current_user.id
+            session.add(current_contact)
+            await session.commit()
 
     asyncio.run(init_models())
 
@@ -74,7 +96,5 @@ def client():
 
 @pytest_asyncio.fixture()
 async def get_token():
-    token = await create_access_token(
-        data={"sub": test_user["username"], "id": test_user["id"]}
-    )
+    token = await create_access_token(data={"sub": test_user["username"], "id": 1})
     return token
