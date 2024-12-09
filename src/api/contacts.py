@@ -27,6 +27,7 @@ from src.database.db import get_db
 from src.schemas import ContactModel, ContactResponse, UserModel
 from src.services.contacts import ContactService
 from src.services.auth import get_current_user
+from src.conf import messages
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
@@ -61,7 +62,7 @@ async def read_contact(
     contact = await contact_service.get_contact(contact_id, user)
     if contact is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=messages.CONTACT_NOT_FOUND
         )
     return contact
 
@@ -94,7 +95,7 @@ async def update_contact(
     contact = await contact_service.update_contact(contact_id, body, user)
     if contact is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=messages.CONTACT_NOT_FOUND
         )
     return contact
 
@@ -112,6 +113,6 @@ async def remove_contact(
     contact = await contact_service.remove_contact(contact_id, user)
     if contact is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=messages.CONTACT_NOT_FOUND
         )
     return contact

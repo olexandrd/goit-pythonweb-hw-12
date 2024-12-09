@@ -1,5 +1,6 @@
+from unittest.mock import Mock, AsyncMock, patch
+
 import pytest
-from unittest.mock import Mock
 from sqlalchemy import select
 
 from tests.conftest import TestingSessionLocal
@@ -51,27 +52,32 @@ def test_not_confirmed_login(client):
 
 
 @pytest.mark.asyncio
-async def test_login(client):
-    async with TestingSessionLocal() as session:
-        current_user = await session.execute(
-            select(User).where(User.email == user_data.get("email"))
-        )
-        current_user = current_user.scalar_one_or_none()
-        if current_user:
-            current_user.confirmed = True
-            await session.commit()
+async def test_login(client, monkeypatch):
+    mock_redis_client = AsyncMock()
+    mock_redis_client.get.return_value = None
+    mock_redis_client.set.return_value = None
+    with patch("src.api.auth.get_redis_client", return_value=mock_redis_client):
+        async with TestingSessionLocal() as session:
+            current_user = await session.execute(
+                select(User).where(User.email == user_data.get("email"))
+            )
+            current_user = current_user.scalar_one_or_none()
+            if current_user:
+                current_user.confirmed = True
+                await session.commit()
 
-    response = client.post(
-        "api/auth/login",
-        data={
-            "username": user_data.get("username"),
-            "password": user_data.get("password"),
-        },
-    )
-    assert response.status_code == 200, response.text
-    data = response.json()
-    assert "access_token" in data
-    assert "token_type" in data
+        response = client.post(
+            "api/auth/login",
+            data={
+                "username": user_data.get("username"),
+                "password": user_data.get("password"),
+            },
+        )
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert "access_token" in data
+        assert "token_type" in data
+        mock_redis_client.set.assert_called_once()
 
 
 def test_wrong_password_login(client):
