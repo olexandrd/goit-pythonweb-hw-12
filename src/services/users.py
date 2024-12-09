@@ -127,3 +127,15 @@ class UserService:
         """
 
         return await self.repository.update_avatar_url(email, url)
+
+    async def reset_password(self, user_id: int, password: str):
+        """
+        Resets the password for a user with the given user ID.
+        Args:
+            user_id (int): The ID of the user whose password is to be reset.
+            password (str): The new password to set for the user.
+        Returns:
+            User: The updated user object with the new password if successful, None otherwise.
+        """
+
+        return await self.repository.reset_password(user_id, password)

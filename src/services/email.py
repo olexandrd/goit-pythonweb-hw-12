@@ -26,7 +26,7 @@ conf = ConnectionConfig(
 )
 
 
-async def send_email(email: EmailStr, username: str, host: str):
+async def send_registration_email(email: EmailStr, username: str, host: str):
     """
     Send an email using the FastMail service.
     """
@@ -45,5 +45,27 @@ async def send_email(email: EmailStr, username: str, host: str):
 
         fm = FastMail(conf)
         await fm.send_message(message, template_name="verify_email.html")
+    except ConnectionErrors as err:
+        print(err)
+
+
+async def send_reset_password_email(
+    email: EmailStr, username: str, host: str, reset_token: str
+):
+    """
+    Send a reset password email using the FastMail service.
+    """
+    try:
+        reset_link = f"{host}api/auth/confirm_reset_password/{reset_token}"
+
+        message = MessageSchema(
+            subject="Reset password",
+            recipients=[email],
+            template_body={"reset_link": reset_link, "username": username},
+            subtype=MessageType.html,
+        )
+
+        fm = FastMail(conf)
+        await fm.send_message(message, template_name="reset_password.html")
     except ConnectionErrors as err:
         print(err)

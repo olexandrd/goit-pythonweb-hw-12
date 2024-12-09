@@ -34,6 +34,7 @@ from src.services.users import UserService
 from src.schemas import UserModel
 from src.database.models import User, UserRole
 from src.conf.redis_client import get_redis_client
+from src.conf import messages
 
 
 class Hash:
@@ -203,3 +204,27 @@ async def get_email_from_token(token: str) -> str:
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Wrong token",
         ) from e
+
+
+async def get_password_from_token(token: str):
+    """
+    Extracts the password from a given JWT token.
+    Args:
+        token (str): The JWT token from which to extract the password.
+    Returns:
+        str: The password extracted from the token.
+    Raises:
+        HTTPException: If the token is invalid or cannot be decoded.
+    """
+
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+        )
+        password = payload["password"]
+        return password
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=messages.ERROR_WRONG_TOKEN,
+        ) from exc

@@ -143,3 +143,8 @@ class RequestEmail(BaseModel):
     """
 
     email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=3, max_length=128, description="New password")
