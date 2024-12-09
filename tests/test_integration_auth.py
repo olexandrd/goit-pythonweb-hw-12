@@ -114,7 +114,7 @@ def test_confirmed_email_fail(client):
     response = client.get(f"api/auth/confirmed_email/{token}")
     assert response.status_code == 422
     data = response.json()
-    assert data["detail"] == messages.WRONG_TOKEN
+    assert data["detail"] == messages.ERROR_WRONG_TOKEN
 
 
 def test_confirmed_email_confirmed(client, monkeypatch):

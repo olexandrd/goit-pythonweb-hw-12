@@ -47,7 +47,7 @@ async def update_avatar_user(
     if not is_current_user_admin(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=messages.USER_UNSUFFICIENT_PERMISSIONS,
+            detail=messages.ERROR_UNSUFFICIENT_PERMISSIONS,
         )
     avatar_url = UploadFileService(
         settings.CLD_NAME, settings.CLD_API_KEY, settings.CLD_API_SECRET
