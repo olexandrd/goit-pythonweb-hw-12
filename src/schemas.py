@@ -130,11 +130,24 @@ class Token(BaseModel):
 
     Attributes:
         access_token (str): The access token provided after successful authentication.
+        refresh_token (str): The refresh token used to obtain a new access token.
         token_type (str): The type of the token, typically "Bearer".
     """
 
     access_token: str
+    refresh_token: str
     token_type: str
+
+
+class RefreshToken(BaseModel):
+    """
+    RefreshToken schema for handling token refresh requests.
+
+    Attributes:
+        refresh_token (str): The refresh token used to obtain a new access token.
+    """
+
+    refresh_token: str
 
 
 class RequestEmail(BaseModel):
@@ -146,5 +159,12 @@ class RequestEmail(BaseModel):
 
 
 class ResetPassword(BaseModel):
+    """
+    ResetPassword schema for handling password reset requests.
+    Attributes:
+        email (EmailStr): The email address of the user requesting the password reset.
+        password (str): The new password for the user. Must be between 3 and 128 characters long.
+    """
+
     email: EmailStr
     password: str = Field(min_length=3, max_length=128, description="New password")

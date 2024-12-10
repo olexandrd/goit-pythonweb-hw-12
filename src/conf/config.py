@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     DB_URL: str
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRATION_SECONDS: int = 3600
+    JWT_EXPIRATION_SECONDS: int = 120
+    JWT_REFRESH_EXPIRATION_SECONDS: int = 600
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

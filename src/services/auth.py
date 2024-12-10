@@ -108,6 +108,47 @@ async def create_access_token(data: dict, expires_delta: Optional[int] = None):
     return encoded_jwt
 
 
+async def store_refresh_token(user_id: int, refresh_token: str):
+    """
+    Store the refresh token in Redis with an expiration time.
+
+    Args:
+        user_id (int): The ID of the user.
+        refresh_token (str): The refresh token to store.
+    """
+    redis_client = await get_redis_client()
+    await redis_client.set(
+        f"refresh_token:{user_id}",
+        refresh_token,
+        ex=settings.JWT_REFRESH_EXPIRATION_SECONDS,
+    )
+
+
+async def create_refresh_token(data: dict, expires_delta: Optional[int] = None):
+    """
+    Creates a refresh token with an optional expiration time.
+    Args:
+        data (dict): The data to encode in the token.
+        expires_delta (Optional[int], optional): The time in seconds until the token expires.
+            If not provided, the default expiration time from settings is used.
+    Returns:
+        str: The encoded JWT refresh token.
+    """
+
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now() + expires_delta
+    else:
+        expire = datetime.now() + timedelta(
+            days=settings.JWT_REFRESH_EXPIRATION_SECONDS
+        )
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
+    )
+    return encoded_jwt
+
+
 async def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
@@ -156,7 +197,7 @@ async def get_current_user(
     await redis_client.set(
         f"user:{user.id}",
         user_out.json(),
-        ex=600,
+        ex=3600,
     )
     return user
 
@@ -199,6 +240,23 @@ async def get_email_from_token(token: str) -> str:
         )
         email = payload["sub"]
         return email
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Wrong token",
+        ) from e
+
+
+async def get_user_id_from_token(token: str) -> int:
+    """
+    Retrieve the user ID from the provided JWT token.
+    """
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+        )
+        user_id = payload["id"]
+        return user_id
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
