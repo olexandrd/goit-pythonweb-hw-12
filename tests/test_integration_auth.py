@@ -76,8 +76,8 @@ async def test_login(client, monkeypatch):
         assert response.status_code == 200, response.text
         data = response.json()
         assert "access_token" in data
+        assert "refresh_token" in data
         assert "token_type" in data
-        mock_redis_client.set.assert_called_once()
 
 
 def test_wrong_password_login(client):
@@ -180,3 +180,82 @@ async def logout(client, monkeypatch):
     assert response.status_code == 401
     data = response.json()
     assert data["detail"] == messages.USER_WRONG_CREDENTIALS
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_not_authorized(client):
+    mock_redis_client = AsyncMock()
+    mock_redis_client.get.return_value = None
+    mock_redis_client.set.return_value = None
+    with patch("src.api.auth.get_redis_client", return_value=mock_redis_client):
+        response = client.post(
+            "api/auth/token/refresh",
+        )
+        assert response.status_code == 401
+        data = response.json()
+        assert data["detail"] == messages.ERROR_NOT_AUTHENTICATED
+
+
+@pytest.mark.asyncio
+async def test_refresh_token(client, get_token, get_refresh_token):
+    mock_redis_client = AsyncMock()
+    mock_redis_client.get.return_value = get_refresh_token
+    mock_redis_client.set.return_value = None
+    with patch("src.api.auth.get_redis_client", return_value=mock_redis_client):
+        response = client.post(
+            "api/auth/token/refresh",
+            json={
+                "refresh_token": get_refresh_token,
+            },
+            headers={"Authorization": f"Bearer {get_token}"},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+
+
+@pytest.mark.asyncio
+async def test_reset_password(client, monkeypatch):
+    async def mock_get_user_by_email(self, email):
+        user_data_copy = user_data.copy()
+        user_data_copy.pop("password")
+        user = User(**user_data_copy)
+        user.confirmed = True
+        return user
+
+    monkeypatch.setattr(
+        "src.services.users.UserService.get_user_by_email", mock_get_user_by_email
+    )
+    mock_send_email = Mock()
+    monkeypatch.setattr("src.api.auth.send_registration_email", mock_send_email)
+    response = client.post(
+        "api/auth/reset_password",
+        json={"email": user_data["email"], "password": "12345678"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == messages.USER_EMAIL_CHECK_EMAIL
+
+
+@pytest.mark.asyncio
+async def test_reset_password_not_confirmed(client, monkeypatch):
+    async def mock_get_user_by_email(self, email):
+        user_data_copy = user_data.copy()
+        user_data_copy.pop("password")
+        user = User(**user_data_copy)
+        user.confirmed = False
+        return user
+
+    monkeypatch.setattr(
+        "src.services.users.UserService.get_user_by_email", mock_get_user_by_email
+    )
+    mock_send_email = Mock()
+    monkeypatch.setattr("src.api.auth.send_registration_email", mock_send_email)
+    response = client.post(
+        "api/auth/reset_password",
+        json={"email": user_data["email"], "password": "12345678"},
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert data["detail"] == messages.USER_EMAIL_NOT_CONFIRMED

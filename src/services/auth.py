@@ -243,7 +243,7 @@ async def get_email_from_token(token: str) -> str:
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Wrong token",
+            detail=messages.ERROR_WRONG_TOKEN,
         ) from e
 
 
@@ -260,7 +260,7 @@ async def get_user_id_from_token(token: str) -> int:
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Wrong token",
+            detail=messages.ERROR_WRONG_TOKEN,
         ) from e
 
 

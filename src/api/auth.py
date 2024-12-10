@@ -168,35 +168,30 @@ async def request_email(
     return {"message": messages.USER_EMAIL_CHECK_EMAIL}
 
 
-@router.post(
-    "/token/refresh",
-    response_model=Token,
-)
+@router.post("/token/refresh", response_model=Token)
 async def refresh_token_check(
     refresh_token: RefreshToken,
     db: Session = Depends(get_db),
     user: UserModel = Depends(get_current_user),
 ):
-    user_id = await get_user_id_from_token(refresh_token.refresh_token)
+    user_input = refresh_token.refresh_token
+    user_id = await get_user_id_from_token(user_input)
 
     redis_client = await get_redis_client()
     stored_token = await redis_client.get(f"refresh_token:{user_id}")
-    print(stored_token)
 
-    print(refresh_token.refresh_token)
-    user_input = refresh_token.refresh_token
     if stored_token != user_input:
-        raise HTTPException(status_code=401, detail="Token revoked")
+        raise HTTPException(status_code=401, detail=messages.ERROR_TOKEN_REVOKED)
 
     user_service = UserService(db)
     user = await user_service.get_user_by_id(user_id)
     if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=messages.USER_NOT_FOUND)
 
     access_token = await create_access_token({"sub": user.username, "id": user.id})
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token.refresh_token,
+        "refresh_token": user_input,
         "token_type": "bearer",
     }
 
