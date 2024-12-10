@@ -197,10 +197,13 @@ async def test_refresh_token_not_authorized(client):
 
 
 @pytest.mark.asyncio
-async def test_refresh_token(client, get_token, get_refresh_token):
+async def test_refresh_token(client, get_token, get_refresh_token, monkeypatch):
     mock_redis_client = AsyncMock()
-    mock_redis_client.get.return_value = get_refresh_token
     mock_redis_client.set.return_value = None
+    mock_redis_client.get.side_effect = [None, get_refresh_token]
+    monkeypatch.setattr(
+        "src.services.auth.get_redis_client", AsyncMock(return_value=mock_redis_client)
+    )
     with patch("src.api.auth.get_redis_client", return_value=mock_redis_client):
         response = client.post(
             "api/auth/token/refresh",
@@ -227,6 +230,7 @@ async def test_reset_password(client, monkeypatch):
     monkeypatch.setattr(
         "src.services.users.UserService.get_user_by_email", mock_get_user_by_email
     )
+
     mock_send_email = Mock()
     monkeypatch.setattr("src.api.auth.send_registration_email", mock_send_email)
     response = client.post(
