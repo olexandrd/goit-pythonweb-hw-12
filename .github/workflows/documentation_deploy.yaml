@@ -34,7 +34,7 @@ jobs:
 
     - name: Build documentation
       env:
-        DB_URL: "sqlite:///../db.sqlite"
+        DB_URL: "sqlite+aiosqlite:///./test.db"
         CLD_API_KEY: "1234567890"
         CLD_API_SECRET: "none"
         CLD_NAME: "test"
