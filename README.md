@@ -1,5 +1,7 @@
 # goit-pythonweb-hw-08
 
+![Coverage](https://img.shields.io/badge/Coverage-75%25-brightgreen)
+
 ## Setup
 
 1. Create a `.env` file in the root of the project with the following content:
