@@ -1,6 +1,6 @@
 # goit-pythonweb-hw-08
 
-![Coverage](https://img.shields.io/badge/Coverage-75%25-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-81%25-brightgreen)
 
 ## Setup
 
