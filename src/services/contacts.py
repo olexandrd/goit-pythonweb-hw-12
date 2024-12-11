@@ -107,6 +107,7 @@ class ContactService:
 
         Raises:
             Exception: If the update operation fails.
+
         """
         return await self.repository.update_contact(contact_id, body, user)
 

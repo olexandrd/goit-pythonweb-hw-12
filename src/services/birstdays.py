@@ -31,6 +31,16 @@ class BirthdayService:
 
     async def get_contacts(self, skip: int, limit: int, daygap: int, user: UserModel):
         """
-        Retrieve a list of contacts with upcoming birthdays.
+        Retrieve a list of contacts based on pagination and a day gap filter.
+
+        Args:
+            skip (int): The number of contacts to skip for pagination.
+            limit (int): The maximum number of contacts to return.
+            daygap (int): The number of days to filter contacts by.
+            user (UserModel): The user for whom the contacts are being retrieved.
+
+        Returns:
+            List[ContactModel]: A list of contacts that match the given criteria.
+
         """
         return await self.repository.get_contacts(skip, limit, daygap, user)

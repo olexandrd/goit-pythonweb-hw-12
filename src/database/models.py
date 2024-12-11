@@ -19,13 +19,18 @@ from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import Date, DateTime, Boolean
 
 
-class Base(DeclarativeBase):  # pylint: disable=[missing-class-docstring]
+class Base(DeclarativeBase):
+    """
+    Base class for declarative class definitions
+    """
+
     pass
 
 
 class UserRole(str, Enum):
     """
     Enum representing user roles.
+
     Attributes:
         USER (str): Represents a regular user.
         ADMIN (str): Represents an administrator.

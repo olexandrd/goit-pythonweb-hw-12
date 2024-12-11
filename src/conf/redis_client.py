@@ -18,6 +18,7 @@ async def get_redis_client():
     already exists. If not, it initializes a new Redis client using the
     host and port specified in the settings. The Redis client is configured
     to decode responses.
+
     Returns:
         redis.Redis: An instance of the Redis client.
     """

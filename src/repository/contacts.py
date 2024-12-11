@@ -1,9 +1,13 @@
 """
-DB operations for contacts
+This module defines the ContactRepository class, which provides methods to interact with the contacts stored in the database for a specific user.
+
+Classes:
+    ContactRepository:
+        Provides methods to interact with the contacts stored in the database for a specific user.
+
 """
 
 from typing import List
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +17,15 @@ from src.schemas import ContactModel, ContactUpdate
 
 class ContactRepository:
     """
-    Contact repository
+    ContactRepository provides methods to interact with the contacts stored in the database for a specific user.
+
+    Methods:
+        get_contacts(skip: int, limit: int, search_queue: str | None, user: User) -> List[Contact]:
+        get_contact_by_id(contact_id: int, user: User) -> Contact | None: Return a contact by id, needed for create, update and delete operations.
+        create_contact(body: ContactModel, user: User) -> Contact:
+        remove_contact(contact_id: int, user: User) -> Contact | None:
+        update_contact(contact_id: int, body: ContactUpdate, user: User) -> Contact | None:
+
     """
 
     def __init__(self, session: AsyncSession):
@@ -23,7 +35,17 @@ class ContactRepository:
         self, skip: int, limit: int, search_queue: str | None, user: User
     ) -> List[Contact]:
         """
-        Retrieve contacts, skip and limit are used for pagination
+        Retrieve a list of contacts for a given user with optional search functionality.
+
+        Args:
+            skip (int): The number of records to skip for pagination.
+            limit (int): The maximum number of records to return.
+            search_queue (str | None): An optional search string to filter contacts by name, surname, or email.
+            user (User): The user whose contacts are to be retrieved.
+
+        Returns:
+            List[Contact]: A list of contacts matching the search criteria and pagination settings.
+
         """
         if search_queue:
             stmt = (
@@ -44,7 +66,15 @@ class ContactRepository:
 
     async def get_contact_by_id(self, contact_id: int, user: User) -> Contact | None:
         """
-        Return a contact by id, needed for create, update and delete operations
+        Retrieve a contact by its ID for a specific user.
+
+        Args:
+            contact_id (int): The ID of the contact to retrieve.
+            user (User): The user to whom the contact belongs.
+
+        Returns:
+            Contact | None: The contact if found, otherwise None.
+
         """
         stmt = select(Contact).filter_by(id=contact_id, user=user)
         contact = await self.db.execute(stmt)
@@ -63,6 +93,7 @@ class ContactRepository:
 
         Raises:
             SQLAlchemyError: If there is an error committing the contact to the database.
+
         """
         contact = Contact(
             **body.model_dump(exclude_unset=True),
@@ -95,12 +126,15 @@ class ContactRepository:
     ) -> Contact | None:
         """
         Update an existing contact with new information.
+
         Args:
             contact_id (int): The ID of the contact to update.
             body (ContactUpdate): An object containing the updated contact information.
             user (User): The user performing the update.
+
         Returns:
             Contact | None: The updated contact if found, otherwise None.
+
         """
         contact = await self.get_contact_by_id(contact_id, user)
         if contact:

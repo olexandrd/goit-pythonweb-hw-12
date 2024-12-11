@@ -36,6 +36,17 @@ async def read_bistdays(
 ):
     """
     Fetch contacts with upcoming birthdays.
+
+    Args:
+        skip (int, optional): Number of records to skip. Defaults to 0.
+        limit (int, optional): Maximum number of records to return. Defaults to 100.
+        daygap (int, optional): Number of days ahead to look for upcoming birthdays. Defaults to 7.
+        db (AsyncSession, optional): Database session dependency.
+        user (UserModel, optional): Current user dependency.
+
+    Returns:
+        List[Contact]: List of contacts with upcoming birthdays.
+
     """
     contact_service = BirthdayService(db)
     contacts = await contact_service.get_contacts(skip, limit, daygap, user)

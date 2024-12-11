@@ -17,6 +17,7 @@ from src.schemas import UserCreate
 class UserRepository:
     """
     Repository class for managing User entities in the database.
+
     Methods
     -------
     __init__(self, session: AsyncSession)
@@ -29,6 +30,7 @@ class UserRepository:
         Retrieves a user by their email.
     async def create_user(self, body: UserCreate, avatar: str = None) -> User
         Creates a new user with the given details and optional avatar.
+
     """
 
     def __init__(self, session: AsyncSession):
@@ -43,6 +45,7 @@ class UserRepository:
 
         Returns:
             User | None: The user object if found, otherwise None.
+
         """
         stmt = select(User).filter_by(id=user_id)
         user = await self.db.execute(stmt)
@@ -57,6 +60,7 @@ class UserRepository:
 
         Returns:
             User | None: The user object if found, otherwise None.
+
         """
         stmt = select(User).filter_by(username=username)
         user = await self.db.execute(stmt)
@@ -71,6 +75,7 @@ class UserRepository:
 
         Returns:
             User | None: The user object if found, otherwise None.
+
         """
         stmt = select(User).filter_by(email=email)
         user = await self.db.execute(stmt)
@@ -86,6 +91,7 @@ class UserRepository:
 
         Returns:
             User: The newly created user object.
+
         """
         user = User(
             **body.model_dump(exclude_unset=True, exclude={"password"}),
@@ -100,10 +106,13 @@ class UserRepository:
     async def confirmed_email(self, email: str) -> None:
         """
         Mark the user's email as confirmed.
+
         Args:
             email (str): The email address of the user to confirm.
+
         Returns:
             None
+
         """
 
         user = await self.get_user_by_email(email)
@@ -113,13 +122,17 @@ class UserRepository:
     async def update_avatar_url(self, email: str, url: str) -> User:
         """
         Updates the avatar URL of a user identified by their email.
+
         Args:
             email (str): The email of the user whose avatar URL is to be updated.
             url (str): The new avatar URL to be set for the user.
+
         Returns:
             User: The updated user object with the new avatar URL.
+
         Raises:
             ValueError: If the user with the given email does not exist.
+
         """
 
         user = await self.get_user_by_email(email)
@@ -131,9 +144,11 @@ class UserRepository:
     async def reset_password(self, user_id: int, password: str) -> User | None:
         """
         Reset the password of a user identified by their ID.
+
         Args:
             user_id (int): The ID of the user whose password is to be reset.
             password (str): The new password to be set for the user.
+
         Returns:
             User: The updated user object with the new password or None if the user does not exist.
 

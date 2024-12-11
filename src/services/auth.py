@@ -1,6 +1,5 @@
 """
-This module provides authentication services including password hashing, 
-    token generation, and user retrieval.
+This module provides authentication services including password hashing, token generation, and user retrieval.
 
 Classes:
     Hash: Provides methods to hash and verify passwords using bcrypt.
@@ -90,11 +89,11 @@ async def create_access_token(data: dict, expires_delta: Optional[int] = None):
 
     Args:
         data (dict): The data to encode in the JWT.
-        expires_delta (Optional[int], optional): The number of seconds until the token expires.
-                If not provided, defaults to the configured expiration time.
+        expires_delta (Optional[int], optional): The number of seconds until the token expires. If not provided, defaults to the configured expiration time.
 
     Returns:
         str: The encoded JWT.
+
     """
     to_encode = data.copy()
     if expires_delta:
@@ -115,6 +114,7 @@ async def store_refresh_token(user_id: int, refresh_token: str):
     Args:
         user_id (int): The ID of the user.
         refresh_token (str): The refresh token to store.
+
     """
     redis_client = await get_redis_client()
     await redis_client.set(
@@ -127,12 +127,14 @@ async def store_refresh_token(user_id: int, refresh_token: str):
 async def create_refresh_token(data: dict, expires_delta: Optional[int] = None):
     """
     Creates a refresh token with an optional expiration time.
+
     Args:
         data (dict): The data to encode in the token.
-        expires_delta (Optional[int], optional): The time in seconds until the token expires.
-            If not provided, the default expiration time from settings is used.
+        expires_delta (Optional[int], optional): The time in seconds until the token expires. If not provided, the default expiration time from settings is used.
+
     Returns:
         str: The encoded JWT refresh token.
+
     """
 
     to_encode = data.copy()
@@ -164,6 +166,7 @@ async def get_current_user(
 
     Raises:
         HTTPException: If the token is invalid or the user does not exist.
+
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -205,10 +208,13 @@ async def get_current_user(
 def create_email_token(data: dict) -> str:
     """
     Create a configmation token for the given data with an expiration of 7 days.
+
     Args:
         data (dict): The data to encode in the token.
+
     Returns:
         str: The encoded JWT token.
+
     """
 
     to_encode = data.copy()
@@ -221,10 +227,13 @@ def create_email_token(data: dict) -> str:
 def is_current_user_admin(current_user: User = Depends(get_current_user)) -> bool:
     """
     Check if the current user has an admin role.
+
     Args:
         current_user (User): The user object obtained from the dependency injection.
+
     Returns:
         bool: True if the current user's role is admin, False otherwise.
+
     """
 
     return current_user.role == UserRole.ADMIN
@@ -232,8 +241,19 @@ def is_current_user_admin(current_user: User = Depends(get_current_user)) -> boo
 
 async def get_email_from_token(token: str) -> str:
     """
-    Retrieve the email from the provided JWT token.
+    Extracts the email address from a given JWT token.
+
+    Args:
+        token (str): The JWT token from which to extract the email.
+
+    Returns:
+        str: The email address extracted from the token.
+
+    Raises:
+        HTTPException: If the token is invalid or cannot be decoded.
+
     """
+
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
@@ -249,7 +269,17 @@ async def get_email_from_token(token: str) -> str:
 
 async def get_user_id_from_token(token: str) -> int:
     """
-    Retrieve the user ID from the provided JWT token.
+    Extracts and returns the user ID from a given JWT token.
+
+    Args:
+        token (str): The JWT token from which to extract the user ID.
+
+    Returns:
+        int: The user ID extracted from the token.
+
+    Raises:
+        HTTPException: If the token is invalid or cannot be decoded.
+
     """
     try:
         payload = jwt.decode(
@@ -267,12 +297,16 @@ async def get_user_id_from_token(token: str) -> int:
 async def get_password_from_token(token: str):
     """
     Extracts the password from a given JWT token.
+
     Args:
         token (str): The JWT token from which to extract the password.
+
     Returns:
         str: The password extracted from the token.
+
     Raises:
         HTTPException: If the token is invalid or cannot be decoded.
+
     """
 
     try:
