@@ -30,6 +30,15 @@ jobs:
           poetry install
 
       - name: Run tests with coverage
+        env:
+          DB_URL: ${{ vars.DB_URL }}
+          CLD_API_KEY: ${{ vars.CLD_API_KEY }}
+          CLD_API_SECRET: ${{ vars.CLD_API_SECRET }}
+          CLD_NAME: ${{ vars.CLD_NAME }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
+          MAIL_PASSWORD: ${{ vars.MAIL_PASSWORD }}
+          MAIL_USERNAME: ${{ vars.MAIL_USERNAME }}
         run: |
           poetry run pytest --cov=src --cov-report=xml --cov-report=term
 
