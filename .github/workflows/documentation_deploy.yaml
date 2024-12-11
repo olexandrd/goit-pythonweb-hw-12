@@ -33,6 +33,15 @@ jobs:
         poetry install
 
     - name: Build documentation
+      env:
+        DB_URL: "sqlite:///../db.sqlite"
+        CLD_API_KEY: "1234567890"
+        CLD_API_SECRET: "none"
+        CLD_NAME: "test"
+        JWT_SECRET: "secret"
+        MAIL_FROM: "test@example.com"
+        MAIL_PASSWORD: "password"
+        MAIL_USERNAME: "test@example.com"
       run: |
         cd docs
         poetry run make html 
