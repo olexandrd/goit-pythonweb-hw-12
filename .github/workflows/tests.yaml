@@ -46,7 +46,7 @@ jobs:
         env:
           COVERAGE: ${{ steps.coverage.outputs.coverage }}
         run: |
-          COVERAGE_PERCENT=$(grep -oP '(?<=line-rate="[0-9]+\.[0-9]+") coverage.xml | awk '{print int($1 * 100)}')
+          COVERAGE_PERCENT=$(grep -oP '(?<=line-rate="[0-9]+\.[0-9]+")' coverage.xml | awk '{print int($1 * 100)}')
           sed -i '/^\!\[Coverage\](.*)/c\![Coverage](https://img.shields.io/badge/Coverage-'${COVERAGE_PERCENT}'%25-brightgreen)' README.md
 
       - name: Commit updated README
