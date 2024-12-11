@@ -1,9 +1,15 @@
 """
-Email sender module to send emails to users.
+This module provides email services using the FastMail library. It includes functions to send registration and reset password emails.
+
+Functions:
+    send_registration_email(email: EmailStr, username: str, host: str):
+        Sends a registration email to the specified email address with a verification token.
+
+    send_reset_password_email(email: EmailStr, username: str, host: str, reset_token: str):
+        Sends a reset password email to the specified email address with a reset link.
 """
 
 from pathlib import Path
-
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from fastapi_mail.errors import ConnectionErrors
 from pydantic import EmailStr

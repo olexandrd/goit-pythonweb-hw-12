@@ -1,5 +1,13 @@
 """
-DB operations for bistdays
+This module provides a repository class for managing contacts with upcoming birthdays.
+
+Classes:
+    BirthdayRepository: A repository class for retrieving contacts based on birthday criteria.
+
+Functions:
+    BirthdayRepository.__init__(session: AsyncSession): Initializes the repository with a database session.
+    BirthdayRepository.get_contacts(skip: int, limit: int, daygap: int, user: User) -> List[Contact]: Retrieves a list of contacts based on the specified criteria.
+
 """
 
 from datetime import timedelta, datetime
@@ -14,7 +22,14 @@ from src.database.models import Contact, User
 
 class BirthdayRepository:
     """
-    Birthday repository
+    A repository class for managing and retrieving contacts based on their birthdays.
+
+    Attributes:
+        db (AsyncSession): The database session used for executing queries.
+
+    Methods:
+        get_contacts(skip: int, limit: int, daygap: int, user: User) -> List[Contact]: Retrieves a list of contacts based on the specified criteria.
+
     """
 
     def __init__(self, session: AsyncSession):
@@ -25,13 +40,16 @@ class BirthdayRepository:
     ) -> List[Contact]:
         """
         Retrieve a list of contacts based on the specified criteria.
+
         Args:
             skip (int): The number of records to skip.
             limit (int): The maximum number of records to return.
             daygap (int): The number of days from today to consider for filtering contacts by birthday.
             user (User): The user whose contacts are to be retrieved.
+
         Returns:
             List[Contact]: A list of contacts that match the specified criteria.
+
         """
         today = datetime.now()
         start_day = today.timetuple().tm_yday

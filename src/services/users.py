@@ -1,6 +1,6 @@
 """
-UserService class provides methods to manage user-related operations such as creating a user,
-retrieving user information by ID, username, email, confirming email, and updating avatar URL.
+UserService class provides methods to manage user-related operations such as creating a user, retrieving user information by ID, username, email, confirming email, and updating avatar URL.
+
 Methods:
     __init__(db: AsyncSession):
         Initializes the UserService with a database session.
@@ -31,6 +31,7 @@ class UserService:
     """
     UserService class provides methods to manage user-related operations such as creating a user,
     retrieving user information by ID, username, email, confirming email, and updating avatar URL.
+
     Methods:
         __init__(db: AsyncSession):
             Initializes the UserService with a database session.
@@ -45,6 +46,8 @@ class UserService:
         confirmed_email(email: str):
             Checks if the email is confirmed.
         update_avatar_url(email: str, url: str):
+            Asynchronously updates the avatar URL for a user identified by their email.
+
     """
 
     def __init__(self, db: AsyncSession):
@@ -53,12 +56,16 @@ class UserService:
     async def create_user(self, body: UserCreate):
         """
         Creates a new user with the provided information.
+
         Args:
             body (UserCreate): The user information required to create a new user.
+
         Returns:
             User: The created user object with the provided information and generated avatar.
+
         Raises:
             Exception: If there is an error generating the avatar.
+
         """
         avatar = None
         try:
@@ -72,12 +79,16 @@ class UserService:
     async def get_user_by_id(self, user_id: int):
         """
         Retrieve a user by their unique identifier.
+
         Args:
             user_id (int): The unique identifier of the user.
+
         Returns:
             User: The user object corresponding to the given user_id.
+
         Raises:
             UserNotFoundError: If no user is found with the given user_id.
+
         """
 
         return await self.repository.get_user_by_id(user_id)
@@ -85,10 +96,13 @@ class UserService:
     async def get_user_by_username(self, username: str):
         """
         Retrieve a user by their username.
+
         Args:
             username (str): The username of the user to retrieve.
+
         Returns:
             User: The user object corresponding to the given username.
+
         """
 
         return await self.repository.get_user_by_username(username)
@@ -96,11 +110,13 @@ class UserService:
     async def get_user_by_email(self, email: str):
         """
         Retrieve a user by their email address.
+
         Args:
             email (str): The email address of the user to retrieve.
+
         Returns:
-            User: The user object corresponding to the given email address,
-                or None if no user is found.
+            User: The user object corresponding to the given email address, or None if no user is found.
+
         """
 
         return await self.repository.get_user_by_email(email)
@@ -108,10 +124,13 @@ class UserService:
     async def confirmed_email(self, email: str):
         """
         Check if the email is confirmed.
+
         Args:
             email (str): The email address to check.
+
         Returns:
             bool: True if the email is confirmed, False otherwise.
+
         """
 
         return await self.repository.confirmed_email(email)
@@ -119,11 +138,14 @@ class UserService:
     async def update_avatar_url(self, email: str, url: str):
         """
         Asynchronously updates the avatar URL for a user identified by their email.
+
         Args:
             email (str): The email address of the user whose avatar URL is to be updated.
             url (str): The new avatar URL to be set for the user.
+
         Returns:
             The result of the repository's update_avatar_url method.
+
         """
 
         return await self.repository.update_avatar_url(email, url)
@@ -131,11 +153,14 @@ class UserService:
     async def reset_password(self, user_id: int, password: str):
         """
         Resets the password for a user with the given user ID.
+
         Args:
             user_id (int): The ID of the user whose password is to be reset.
             password (str): The new password to set for the user.
+
         Returns:
             User: The updated user object with the new password if successful, None otherwise.
+
         """
 
         return await self.repository.reset_password(user_id, password)

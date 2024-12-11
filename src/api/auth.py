@@ -1,9 +1,33 @@
 """
-This module provides authentication-related endpoints for user registration and login.
+This module provides authentication and authorization endpoints for the FastAPI application.
 
 Endpoints:
-- POST /auth/register: Registers a new user in the system.
-- POST /auth/login: Authenticates a user and returns an access token.
+- POST /auth/register: Registers a new user.
+- POST /auth/login: Authenticates a user and generates access and refresh tokens.
+- GET /auth/confirmed_email/{token}: Confirms the user's email address using the provided token.
+- POST /auth/request_email: Requests email confirmation for a user.
+- POST /auth/token/refresh: Refreshes the access token using the provided refresh token.
+- POST /auth/logout: Logs out the current user by deleting their session from the Redis cache.
+- POST /auth/reset_password: Handles a password reset request by generating a reset token and sending a reset password email.
+- GET /auth/confirm_reset_password/{token}: Confirms and resets the user's password using the provided token.
+
+Dependencies:
+- FastAPI
+- SQLAlchemy
+- Redis
+
+Imports:
+- FastAPI dependencies: APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
+- FastAPI security: OAuth2PasswordRequestForm
+- Schemas: UserCreate, Token, RefreshToken, UserModel, RequestEmail, ResetPassword
+- Services: create_access_token, Hash, get_email_from_token, get_current_user, get_password_from_token, create_refresh_token, get_user_id_from_token
+- User service: UserService
+- Database: get_db
+- Email services: send_registration_email, send_reset_password_email
+- Redis client: get_redis_client
+- Configuration: settings
+- Messages: messages
+
 """
 
 from sqlalchemy.orm import Session
@@ -45,6 +69,20 @@ async def register_user(
 ):
     """
     Registers a new user in the system.
+
+    Args:
+        user_data (UserCreate): The data required to create a new user.
+        background_tasks (BackgroundTasks): The background tasks to be executed.
+        request (Request): The request object.
+        db (Session, optional): The database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: If a user with the given email already exists.
+        HTTPException: If a user with the given username already exists.
+
+    Returns:
+        User: The newly created user.
+
     """
 
     user_service = UserService(db)
@@ -77,7 +115,18 @@ async def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """
-    Logs in a user by verifying their credentials and generating an access token.
+    Authenticate a user and generate access and refresh tokens.
+
+    Args:
+        form_data (OAuth2PasswordRequestForm): The form data containing the username and password.
+        db (Session): The database session dependency.
+
+    Returns:
+        dict: A dictionary containing the access token, refresh token, and token type.
+
+    Raises:
+        HTTPException: If the user credentials are incorrect or the user's email is not confirmed.
+
     """
     user_service = UserService(db)
     user = await user_service.get_user_by_username(form_data.username)
@@ -118,13 +167,17 @@ async def login_user(
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
     """
     Confirm the user's email address using the provided token.
+
     Args:
         token (str): The token used to confirm the email address.
         db (Session, optional): The database session dependency.
+
     Raises:
         HTTPException: If the user is not found or if there is a verification error.
+
     Returns:
         dict: A message indicating whether the email was confirmed or already confirmed.
+
     """
     email = await get_email_from_token(token)
     user_service = UserService(db)
@@ -174,6 +227,22 @@ async def refresh_token_check(
     db: Session = Depends(get_db),
     user: UserModel = Depends(get_current_user),
 ):
+    """
+    Refresh the access token using the provided refresh token.
+
+    Args:
+        refresh_token (RefreshToken): The refresh token provided by the user.
+        db (Session, optional): The database session dependency. Defaults to Depends(get_db).
+        user (UserModel, optional): The current user dependency. Defaults to Depends(get_current_user).
+
+    Raises:
+        HTTPException: If the stored token does not match the provided token.
+        HTTPException: If the user is not found in the database.
+
+    Returns:
+        dict: A dictionary containing the new access token, the provided refresh token, and the token type.
+
+    """
     user_input = refresh_token.refresh_token
     user_id = await get_user_id_from_token(user_input)
 
@@ -200,10 +269,13 @@ async def refresh_token_check(
 async def logout(user: str = Depends(get_current_user)):
     """
     Logs out the current user by deleting their session from the Redis cache.
+
     Args:
         user (str): The current user obtained from the dependency injection.
+
     Returns:
         dict: A message indicating the user has been logged out successfully.
+
     """
 
     redis_client = await get_redis_client()
@@ -221,13 +293,16 @@ async def reset_password_request(
 ):
     """
     Handles a password reset request by generating a reset token and sending a reset password email.
+
     Args:
         body (ResetPassword): The request body containing the user's email and new password.
         background_tasks (BackgroundTasks): Background tasks to be executed after the response is sent.
         request (Request): The HTTP request object.
         db (Session, optional): The database session dependency.
+
     Returns:
         dict: A message indicating that the user should check their email.
+
     Raises:
         HTTPException: If the user's email is not confirmed.
     """
@@ -264,13 +339,17 @@ async def reset_password_request(
 async def confirm_reset_password(token: str, db: Session = Depends(get_db)):
     """
     Confirm and reset the user's password using the provided token.
+
     Args:
         token (str): The token containing the user's email and new password.
         db (Session, optional): The database session dependency.
+
     Raises:
         HTTPException: If the token is invalid or the user is not found.
+
     Returns:
         dict: A message indicating the password has been reset.
+
     """
     email = await get_email_from_token(token)
     hashed_password = await get_password_from_token(token)

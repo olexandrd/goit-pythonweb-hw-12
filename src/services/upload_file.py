@@ -5,8 +5,7 @@ Classes:
     UploadFileService: A service class for uploading files to Cloudinary.
 
 Usage Example:
-    service = UploadFileService(cloud_name='your_cloud_name', api_key='your_api_key', 
-        api_secret='your_api_secret')
+    service = UploadFileService(cloud_name='your_cloud_name', api_key='your_api_key', api_secret='your_api_secret')
     url = service.upload_file(file, username='your_username')
 
 """
@@ -34,7 +33,15 @@ class UploadFileService:
     @staticmethod
     def upload_file(file, username) -> str:
         """
-        Upload a file to Cloudinary.
+        Uploads a file to Cloudinary and returns the URL of the uploaded file.
+
+        Args:
+            file: The file to be uploaded.
+            username: The username to be used in the public ID of the file.
+
+        Returns:
+            str: The URL of the uploaded file.
+
         """
         public_id = f"RestApp/{username}"
         r = cloudinary.uploader.upload(file.file, public_id=public_id, overwrite=True)
