@@ -1,6 +1,14 @@
 # goit-pythonweb-hw-08
 
-![Coverage](https://img.shields.io/badge/Coverage-81%25-brightgreen)
+![Coverage](https://img.shields.io/badge/CodeCoverage-81%25-brightgreen)
+
+## Demo
+
+Live demo: [https://fastapi.olexandr.cx.ua/docs](https://fastapi.olexandr.cx.ua/docs)
+On demo MailCatcher is used to catch emails.
+You can see them on [https://fastapi.olexandr.cx.ua/email-messages](https://fastapi.olexandr.cx.ua/email-messages)
+
+Documentation is updated automatically using github-actions: [https://olexandrd.github.io/goit-pythonweb-hw-12/](https://olexandrd.github.io/goit-pythonweb-hw-12/)
 
 ## Setup
 
