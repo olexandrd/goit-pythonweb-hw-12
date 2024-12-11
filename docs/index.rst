@@ -16,7 +16,7 @@ Indices and tables
 * :ref:`search`
 
 FastApi Demo main
-===================
+=================
 .. automodule:: main
   :members:
   :undoc-members:
@@ -29,6 +29,7 @@ FastApi Demo api auth
   :members:
   :undoc-members:
   :show-inheritance:
+
 
 FastApi Demo api birstdays
 ==========================

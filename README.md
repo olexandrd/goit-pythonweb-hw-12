@@ -1,4 +1,4 @@
-# goit-pythonweb-hw-08
+# goit-pythonweb-hw-12
 
 ![Coverage](https://img.shields.io/badge/CodeCoverage-81%25-brightgreen)
 
@@ -53,13 +53,3 @@ And add your own values to the variables:
 * `CLD_NAME` - the name of the Cloudinary account
 * `CLD_API_KEY` - the API key for the Cloudinary account
 * `CLD_API_SECRET` - the API secret for the Cloudinary account
-
-2. Run the following commands to set up the project:
-
-```bash
-docker-compose up --build
-```
-
-## Usage
-
-And open the following URL in your browser: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to see the API documentation.
